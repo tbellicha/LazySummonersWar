@@ -1,1 +1,3 @@
 # LazySummonersWar
+
+./exec.sh
