@@ -1,6 +1,7 @@
 from enum import Enum
 
 
+#  ===============  JSON Related  ===============
 #  set_id
 class Set(Enum):
     ENERGY          = 1
@@ -72,6 +73,17 @@ class Stars(Enum):
     SIX_ANTIC   = 16
 
 
+#  craft_type
+class CraftType(Enum):
+    ENCHANTED_GEM           = 1
+    GRINDSTONE              = 2
+    IMMEMORIAL_GEM          = 3
+    IMMEMORIAL_GRINDSTONE   = 4
+    ANCIENT_GEM             = 5
+    ANCIENT_GRINDSTONE      = 6
+
+
+#  ===============  Max Values  ===============
 coeff_flat = 0.5
 
 
@@ -101,12 +113,3 @@ class MaxValueStat5(Enum):
     CRIT_DMG    = 5
     RES         = 7
     ACC         = 7
-
-
-class CraftType(Enum):
-    ENCHANTED_GEM           = 1
-    GRINDSTONE              = 2
-    IMMEMORIAL_GEM          = 3
-    IMMEMORIAL_GRINDSTONE   = 4
-    ANCIENT_GEM             = 5
-    ANCIENT_GRINDSTONE      = 6
