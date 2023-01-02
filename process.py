@@ -6,19 +6,28 @@ from values import *
 
 class Rune:
     def __init__(self, rune):
-        self.rune_id = rune["rune_id"]
-        self.equipped = rune["occupied_type"]
-        self.slot = rune["slot_no"]
-        self.quality = rune["rank"]
-        self.nb_stars = rune["class"]
-        self.set = rune["set_id"]
-        self.main_stat_id = rune["pri_eff"][0]
-        self.innate_stat_id = rune["prefix_eff"][0]
-        self.innate_stat_value = rune["prefix_eff"][1]
-        self.substats = []
+        self.rune_id            = rune["rune_id"]
+        self.equipped           = rune["occupied_type"]
+        self.slot               = rune["slot_no"]
+        self.quality            = rune["rank"]
+        self.nb_stars           = rune["class"]
+        self.set                = rune["set_id"]
+        self.main_stat_id       = rune["pri_eff"][0]
+        self.innate_stat_id     = rune["prefix_eff"][0]
+        self.innate_stat_value  = rune["prefix_eff"][1]
+        self.substats           = []
         for substat in rune["sec_eff"]:
             self.substats.append(substat)
         self.efficiency = 0
+
+
+class Modifier:
+    def __init__(self, modifier):
+        max_char        = len(str(modifier["craft_type_id"]))
+        self.type       = modifier["craft_type"]
+        self.set        = int(str(modifier["craft_type_id"])[0:max_char - 4])
+        self.stat       = int(str(modifier["craft_type_id"])[max_char - 4:max_char - 2])
+        self.quality    = int(str(modifier["craft_type_id"])[max_char - 2:max_char])
 
 
 def calc_efficiency(rune):
@@ -61,6 +70,7 @@ def process(argv):
     data = json.load(file)
     name = data["wizard_info"]["wizard_name"]
     all_account_runes = []
+    all_account_modifiers = []
     print(name)
     i = 0
     #  Runes from monsters
@@ -77,5 +87,8 @@ def process(argv):
             i += 1
         all_account_runes.append(crune)
     print('Nb runes +100%: ' + str(i))
+    for modifier in data["rune_craft_item_list"]:
+        cmodifier = Modifier(modifier)
+        all_account_modifiers.append(cmodifier)
     file.close()
     return 0
