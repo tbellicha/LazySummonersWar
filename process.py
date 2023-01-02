@@ -76,6 +76,6 @@ def process(argv):
         if crune.efficiency >= 100:
             i += 1
         all_account_runes.append(crune)
-    print(i)
+    print('Nb runes +100%: ' + str(i))
     file.close()
     return 0
