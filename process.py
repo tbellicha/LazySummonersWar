@@ -207,7 +207,7 @@ def compute_json(argv):
 
 def process_enchant(argv):
     start_time = time.time()
-    all_account_runes, all_account_modifiers = compute_json(argv)
+    all_account_runes, all_account_modifiers = compute_json(argv)[0:2]
     choose_enchant(all_account_runes, all_account_modifiers)
     all_account_runes.sort(key=lambda x: x.max_gem_efficiency, reverse=True)
     for rune in all_account_runes:
@@ -218,7 +218,7 @@ def process_enchant(argv):
 
 def process_grind(argv):
     start_time = time.time()
-    all_account_runes, all_account_modifiers = compute_json(argv)
+    all_account_runes, all_account_modifiers = compute_json(argv)[0:2]
     choose_grind(all_account_runes, all_account_modifiers)
     all_account_runes.sort(key=lambda x: x.max_grind_efficiency, reverse=True)
     print(all_account_runes[0], all_account_runes[0].max_grind_efficiency)
@@ -250,7 +250,7 @@ def process_score(argv):
     total_score = 0
     map_score = [[0 for i in podValues["Eff"]] for i in podValues["Sets"]]
     map_sets = [x for x in podValues["Sets"]]
-    interesting_monsters = list(filter(lambda x: x.element in ["Light", "Dark"] and x.natural_stars >= 4 and x.awaken_level > 0, all_account_monsters))
+    interesting_monsters = list(filter(lambda x: x.natural_stars >= 2 and x.awaken_level > 0, all_account_monsters))
     for r, rune in enumerate(all_account_runes):
         curr_score = 0
         for e, podEff in enumerate(podValues["Eff"]):
