@@ -1,6 +1,6 @@
 NAME		= 	lsy
 
-SRC			=	./src/lsy.py
+SRC			=	./lsy.py
 
 SRC_T		=	./tests.py
 
