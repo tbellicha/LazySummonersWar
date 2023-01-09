@@ -1,6 +1,6 @@
 ## How to contribute
 
-#### **Did you find a bug?** / **Do you want to suggest somthing?**
+#### **Did you find a bug?** / **Do you want to suggest something?**
 
 * Create an issue at [this issue page](https://github.com/tbellicha/SummonersWarAccountScore/issues).
 
@@ -21,7 +21,7 @@
     - [MRG] (Merge with another branch)
     - [RMV] (Remove something)
 
-* The title of the commit must be a summuary of the content and not be too long (less than 50 characters).
+* The title of the commit must be a summary of the content and not be too long (less than 50 characters).
 
 * Example:
   ```sh
