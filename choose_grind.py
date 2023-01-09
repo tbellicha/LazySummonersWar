@@ -1,5 +1,30 @@
 #!/usr/bin/env python3
+import copy
+
+
 from values import *
+
+def calc_efficiency(rune):
+    if rune.nb_stars == Stars.SIX.value or Stars.SIX_ANTIC.value:
+        eff_main = 1
+        eff_innate = 0
+        eff_subs = 0
+        if rune.innate_stat_id != Stat.NONE.value:
+            eff_innate = rune.innate_stat_value / (MaxValueStat6[Stat(rune.innate_stat_id).name].value * 5)
+        for substat in rune.substats:
+            if substat.value != Stat.NONE.value:
+                eff_subs += (substat.value + substat.grind) / (MaxValueStat6[Stat(substat.stat_id).name].value * 5)
+        return round(((eff_main + eff_innate + eff_subs) / 2.8) * 100, 2)
+    if rune.nb_stars == Stars.FIVE.value or Stars.FIVE_ANTIC.value:
+        eff_main = 1 # to change
+        eff_innate = 0
+        eff_subs = 0
+        if rune.innate_stat_id != Stat.NONE.value:
+            eff_innate = rune.innate_stat_value / (MaxValueStat5[Stat(rune.innate_stat_id).name].value * 5)
+        for substat in rune.substats:
+            if substat.value != Stat.NONE.value:
+                eff_subs += (substat.value + substat.grind) / (MaxValueStat5[Stat(substat.stat_id).name].value * 5)
+        return round(((eff_main + eff_innate + eff_subs) / 2.8) * 100, 2)
 
 
 grindValues = {
@@ -78,25 +103,31 @@ grindValues = {
 }
 
 
-def applicable_grind(substat, modifier):
+def applicable_grind(substat, modifier, rune, i):
+    grinded_rune = copy.deepcopy(rune)
     if substat.stat_id != modifier.stat:
-        return False
+        return 0
     if substat.grind < grindValues[Quality(modifier.quality).name][Stat(modifier.stat).name][1]:
-        return True
-    return False
+        grinded_rune.substats[i].grind = grindValues[Quality(modifier.quality).name][Stat(modifier.stat).name][1]
+        grinded_rune.efficiency = calc_efficiency(grinded_rune)
+        return grinded_rune.efficiency - rune.efficiency
+    return 0
 
 
 def choose_grind(runes, modifiers):
+    count = 0
     for rune in runes:
-        for modifier in modifiers:
-            if int(modifier.type) % 2 != 0 :
+        rune.max_grind_efficiency = 0
+        curr_modifier = list(filter(lambda x: x.set == rune.set and x.type % 2 == 0, modifiers))
+        for modifier in curr_modifier:
+            if rune.quality > 10 and modifier.type != CraftType.ANCIENT_GRINDSTONE.value or \
+                rune.quality < 11 and modifier.type == CraftType.ANCIENT_GRINDSTONE.value:
                 continue
-            if rune.set == modifier.set:
-                if rune.quality > 10 and modifier.type != CraftType.ANCIENT_GRINDSTONE.value or \
-                    rune.quality < 11 and modifier.type == CraftType.ANCIENT_GRINDSTONE.value:
-                    continue
-                for substat in rune.substats:
-                    if applicable_grind(substat, modifier):
-                        print(rune)
-                        print(modifier)
-                        return rune, modifier
+            best_winnable_eff = 0
+            for i, substat in enumerate(rune.substats):
+                winnable_eff = applicable_grind(substat, modifier, rune, i)
+                rune.max_grind_efficiency += winnable_eff
+                if winnable_eff > best_winnable_eff:
+                    best_winnable_eff = winnable_eff
+            if best_winnable_eff > 0:
+                count += 1
