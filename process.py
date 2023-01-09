@@ -9,6 +9,28 @@ from values import *
 from choose_grind import *
 from choose_enchant import *
 
+
+class Monster:
+    def __init__(self, monster, all_monsters):
+        file_monster            = next((sub for sub in all_monsters if sub["com2us_id"] == monster["unit_master_id"]), None)
+        self.entity_unique_id   = monster["unit_id"]
+        self.monster_id         = monster["unit_master_id"]
+        self.level              = monster["unit_level"]
+        try:
+            self.name           = file_monster["name"]
+            self.element        = file_monster["element"]
+            self.natural_stars  = file_monster["natural_stars"]
+            self.awaken_level   = file_monster["awaken_level"]
+        except TypeError:
+            self.name           = "Unknown monster"
+            self.element        = "Unknown monster"
+            self.natural_stars  = "Unknown monster"
+            self.awaken_level   = "Unknown monster"
+    def __str__(self) -> str:
+        return \
+            f'[{self.monster_id}] {self.name}'
+
+
 class RuneStat:
     def __init__(self, substats):
         self.stat_id    = substats[0]
@@ -16,7 +38,8 @@ class RuneStat:
         self.third      = substats[2]
         self.grind      = substats[3]
     def __str__(self) -> str:
-        return f'{self.value + self.grind} (+{self.grind}) {Stat(self.stat_id).name}'
+        return \
+            f'{self.value + self.grind} (+{self.grind}) {Stat(self.stat_id).name}'
 
 
 class Rune:
@@ -125,9 +148,36 @@ def compute_json(argv):
         print("Cannot open file", file=sys.stderr)
         return 84
     data = json.load(file)
+    del data["defense_unit_list"]
+    del data["server_arena_defense_unit_list"]
+    del data["quest_active"]
+    del data["quest_rewarded"]
+    del data["event_id_list"]
+    del data["building_list"]
+    del data["deco_list"]
+    del data["obstacle_list"]
+    del data["mob_costume_equip_list"]
+    del data["mob_costume_part_list"]
+    del data["object_storage_list"]
+    del data["object_state"]
+    del data["homunculus_skill_list"]
+    del data["unit_collection"]
+    del data["summon_special_info"]
+    del data["island_info"]
+    del data["inventory_info"]
+    del data["inventory_open_info"]
+    del data["inventory_mail_info"]
+    del data["emoticon_favorites"]
+    del data["wish_list"]
+    del data["markers"]
+    del data["shop_info"]
+    del data["period_item_list"]
+    del data["notice_info"]
+    del data["guild"]
     name = data["wizard_info"]["wizard_name"]
     all_account_runes = []
     all_account_modifiers = []
+    all_account_monsters = []
     print(f'----[{name}]----')
     #  Runes from monsters
     for monster in data["unit_list"]:
@@ -143,9 +193,16 @@ def compute_json(argv):
     for modifier in data["rune_craft_item_list"]:
         cmodifier = Modifier(modifier)
         all_account_modifiers.append(cmodifier)
+    #  Get game monsters
+    f = open('monsters.json', 'r')
+    all_monsters = json.loads(f.read())
+    #  Monsters
+    for monster in data["unit_list"]:
+        cmonster = Monster(monster, all_monsters)
+        all_account_monsters.append(cmonster)
     all_account_modifiers.sort(key=lambda x: x.quality, reverse=True)
     file.close()
-    return all_account_runes, all_account_modifiers
+    return all_account_runes, all_account_modifiers, all_account_monsters
 
 
 def process_enchant(argv):
@@ -188,11 +245,12 @@ podValues = {
 
 def process_score(argv):
     start_time = time.time()
-    all_account_runes = compute_json(argv)[0]
+    all_account_runes, all_account_modifiers, all_account_monsters = compute_json(argv)
     all_account_runes.sort(key=lambda x: x.efficiency, reverse=True)
     total_score = 0
     map_score = [[0 for i in podValues["Eff"]] for i in podValues["Sets"]]
     map_sets = [x for x in podValues["Sets"]]
+    interesting_monsters = list(filter(lambda x: x.element in ["Light", "Dark"] and x.natural_stars >= 4 and x.awaken_level > 0, all_account_monsters))
     for r, rune in enumerate(all_account_runes):
         curr_score = 0
         for e, podEff in enumerate(podValues["Eff"]):
@@ -241,6 +299,7 @@ def process_update(argv):
         count = api_json["count"]
         curr_computed += len(api_json["results"])
         print(f'{curr_computed}/{count}: [{round(curr_computed/count * 100, 2)}%]')
+        to_remove = []
         for i, curr in enumerate(api_json["results"]):
             del curr["url"]
             del curr["image_filename"]
@@ -272,6 +331,15 @@ def process_update(argv):
             del curr["homunculus"]
             del curr["craft_cost"]
             del curr["craft_materials"]
+            res_str = ""
+            for c in curr["name"]:
+                curr_char = str(c.encode('utf-8', 'ignore'))
+                if len(curr_char) > 4:
+                    to_remove.append(i)
+                    break
+                res_str += curr_char
+        for count, elem in enumerate(to_remove):
+            del api_json["results"][to_remove[count] - count]
         f.write(json.dumps(api_json["results"], indent=4))
         if not api_json["next"]:
             break
